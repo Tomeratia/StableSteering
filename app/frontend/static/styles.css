@@ -491,15 +491,13 @@ code { background: #f2ebdf; padding: 2px 6px; border-radius: 8px; }
   color: #8f2a2a;
 }
 
-.attribute-sliders { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
-.slider-row { display: flex; align-items: center; gap: 0.4rem; }
-.slider-label { width: 6rem; font-size: 0.78rem; color: #6b7280; text-transform: capitalize; }
-.slider-min, .slider-max { font-size: 0.8rem; color: #9ca3af; }
-.attr-slider { flex: 1; accent-color: #5b6fd6; }
-.slider-value { width: 2rem; text-align: right; font-size: 0.78rem; color: #374151; font-variant-numeric: tabular-nums; }
 .quick-config-panel { margin-bottom: 1rem; }
 .quick-config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-top: 0.5rem; }
 .quick-config-item { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.82rem; color: #4b5563; }
 .quick-config-item select { padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; font-size: 0.82rem; color: #1f2937; cursor: pointer; }
 .quick-config-item select:focus { outline: 2px solid #5b6fd6; outline-offset: 1px; }
 .quick-config-hint { margin-top: 0.5rem; font-size: 0.78rem; color: #9ca3af; }
+.bvi-choice { display: flex; flex-direction: column; gap: 0.4rem; }
+.bvi-badge { display: inline-block; padding: 0.18rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+.incumbent-badge { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.challenger-badge { background: #ede9fe; color: #4c1d95; border: 1px solid #c4b5fd; }

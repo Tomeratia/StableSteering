@@ -255,21 +255,21 @@ function buildFeedbackPayload(feedbackMode) {
     };
   }
 
-  if (feedbackMode === "attribute_slider") {
-    const sliders = collectAttributeSliders();
-    if (!Object.keys(sliders).length) {
-      throw new Error("Move at least one slider before submitting.");
-    }
-    // Pick the candidate whose sliders have the highest total positive movement as winner
-    const scores = {};
-    document.querySelectorAll(".attr-slider").forEach((input) => {
-      const cid = input.dataset.candidateId;
-      scores[cid] = (scores[cid] || 0) + parseFloat(input.value);
-    });
-    const winnerId = Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
+  if (feedbackMode === "best_vs_incumbent") {
+    const selected = document.querySelector(".bvi-winner-input:checked");
+    if (!selected) throw new Error("Choose either the current winner or the new challenger before submitting.");
+    const winnerId = selected.dataset.candidateId;
+    const isIncumbent = selected.dataset.isIncumbent === "true";
+    const incumbentInput = document.querySelector(".bvi-winner-input[data-is-incumbent='true']");
+    const challengerInput = document.querySelector(".bvi-winner-input[data-is-incumbent='false']");
     return {
-      feedback_type: "attribute_slider",
-      payload: { sliders, winner_candidate_id: winnerId },
+      feedback_type: "best_vs_incumbent",
+      payload: {
+        winner_candidate_id: winnerId,
+        incumbent_candidate_id: incumbentInput?.dataset.candidateId || "",
+        challenger_candidate_id: challengerInput?.dataset.candidateId || "",
+        kept_incumbent: isIncumbent,
+      },
     };
   }
 
@@ -299,18 +299,6 @@ function buildFeedbackPayload(feedbackMode) {
     feedback_type: "scalar_rating",
     payload: { ratings },
   };
-}
-
-function collectAttributeSliders() {
-  const sliders = {};
-  document.querySelectorAll(".attr-slider").forEach((input) => {
-    const val = parseFloat(input.value) / 100.0;
-    if (val !== 0) {
-      const attr = input.dataset.attribute;
-      if (attr) sliders[attr] = val;
-    }
-  });
-  return sliders;
 }
 
 function collectCritiqueTags() {
@@ -453,13 +441,6 @@ Array.from(document.querySelectorAll(".star-button")).forEach((button) => {
     const value = Number(button.dataset.ratingValue || 0);
     applyStarRating(candidateId, value);
     traceFrontend("feedback.rating.selected", { candidate_id: candidateId, rating: value });
-  });
-});
-
-Array.from(document.querySelectorAll(".attr-slider")).forEach((slider) => {
-  const valueDisplay = slider.closest(".slider-row")?.querySelector(".slider-value");
-  slider.addEventListener("input", () => {
-    if (valueDisplay) valueDisplay.textContent = slider.value;
   });
 });
 

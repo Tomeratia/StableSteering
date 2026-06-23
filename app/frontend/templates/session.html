@@ -83,7 +83,17 @@
               </summary>
               <div class="round-body">
                 <div class="image-grid">
+                  {% set bvi_mode = session.config.feedback_mode.value == "best_vs_incumbent" %}
+                  {% set ns = namespace(bvi_challenger_id=none) %}
+                  {% if bvi_mode %}
+                    {% for c in round.candidates %}
+                      {% if c.sampler_role != "incumbent" and ns.bvi_challenger_id is none %}
+                        {% set ns.bvi_challenger_id = c.id %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
                   {% for candidate in round.candidates %}
+                    {% if bvi_mode and candidate.sampler_role != "incumbent" and candidate.id != ns.bvi_challenger_id %}{% else %}
                     <article class="image-card">
                       <img src="{{ candidate.image_path }}" alt="Candidate {{ candidate.candidate_index }}">
                       <h3>Candidate {{ candidate.candidate_index + 1 }}</h3>
@@ -138,20 +148,19 @@
                             <label>Rank
                               <input type="number" min="1" max="{{ round.candidates|length }}" class="rank-input" data-candidate-id="{{ candidate.id }}" inputmode="numeric">
                             </label>
-                          {% elif session.config.feedback_mode.value == "attribute_slider" %}
-                            <div class="attribute-sliders" data-candidate-id="{{ candidate.id }}">
-                              {% for attr in ["brightness", "style", "detail", "composition", "mood"] %}
-                              <div class="slider-row">
-                                <label class="slider-label">{{ attr }}</label>
-                                <span class="slider-min">−</span>
-                                <input type="range" min="-100" max="100" value="0"
-                                  class="attr-slider"
+                          {% elif session.config.feedback_mode.value == "best_vs_incumbent" %}
+                            <div class="bvi-choice">
+                              {% if candidate.sampler_role == "incumbent" %}
+                                <span class="bvi-badge incumbent-badge">Current winner</span>
+                              {% else %}
+                                <span class="bvi-badge challenger-badge">New challenger</span>
+                              {% endif %}
+                              <label class="choice-row">
+                                <input type="radio" name="bvi_winner" class="bvi-winner-input"
                                   data-candidate-id="{{ candidate.id }}"
-                                  data-attribute="{{ attr }}">
-                                <span class="slider-max">+</span>
-                                <span class="slider-value">0</span>
-                              </div>
-                              {% endfor %}
+                                  data-is-incumbent="{{ 'true' if candidate.sampler_role == 'incumbent' else 'false' }}">
+                                <span>Choose this one</span>
+                              </label>
                             </div>
                           {% elif session.config.feedback_mode.value == "critique_rating" %}
                             <div class="rating-widget" data-candidate-id="{{ candidate.id }}">
@@ -186,6 +195,7 @@
                         </div>
                       {% endif %}
                     </article>
+                    {% endif %}
                   {% endfor %}
                 </div>
                 {% if loop.last and not round.feedback_events %}
@@ -200,8 +210,8 @@
                       Mark approved candidates, then choose the preferred winner from the approved set.
                     {% elif session.config.feedback_mode.value == "top_k" %}
                       Assign unique ranks starting at 1. Lower numbers mean better preference.
-                    {% elif session.config.feedback_mode.value == "attribute_slider" %}
-                      Move the sliders to steer the next round. Left = less, right = more. Zero means no change on that dimension.
+                    {% elif session.config.feedback_mode.value == "best_vs_incumbent" %}
+                      Choose between the <strong>current winner</strong> and the <strong>best new challenger</strong>. Keeping the current winner holds the steering vector in place; choosing the challenger moves it forward.
                     {% elif session.config.feedback_mode.value == "critique_rating" %}
                       Rate each candidate with stars, then optionally tag what you liked or disliked. Pair it with the <code>critique_weighted_preference</code> updater to let the tags steer the next round.
                     {% endif %}

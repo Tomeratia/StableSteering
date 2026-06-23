@@ -46,7 +46,7 @@ from app.storage.repository import JsonRepository
 from app.updaters.contrastive_pref import ContrastivePreferenceUpdater
 from app.updaters.critique_weighted_pref import CritiqueWeightedPreferenceUpdater
 from app.updaters.critique_momentum_pref import CritiqueMomentumPreferenceUpdater
-from app.updaters.attribute_slider_pref import AttributeSliderUpdater
+from app.updaters.best_vs_incumbent_pref import BestVsIncumbentUpdater
 from app.updaters.borda_pref import BordaPreferenceUpdater
 from app.updaters.bradley_terry_pref import BradleyTerryPreferenceUpdater
 from app.updaters.challenger_mixture import ChallengerMixturePreferenceUpdater
@@ -100,7 +100,7 @@ class Orchestrator:
             "advantage_softmax_preference": AdvantageSoftmaxPreferenceUpdater(),
             "critique_weighted_preference": CritiqueWeightedPreferenceUpdater(),
             "critique_momentum_preference": CritiqueMomentumPreferenceUpdater(),
-            "attribute_slider_preference": AttributeSliderUpdater(),
+            "best_vs_incumbent_preference": BestVsIncumbentUpdater(),
         }
 
     @staticmethod

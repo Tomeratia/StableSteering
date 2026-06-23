@@ -52,7 +52,7 @@ class FeedbackType(str, Enum):
     winner_only = "winner_only"
     approve_reject = "approve_reject"
     critique_rating = "critique_rating"
-    attribute_slider = "attribute_slider"
+    best_vs_incumbent = "best_vs_incumbent"
 
 
 class SeedPolicy(str, Enum):
@@ -91,7 +91,7 @@ class UpdaterType(str, Enum):
     advantage_softmax_preference = "advantage_softmax_preference"
     critique_weighted_preference = "critique_weighted_preference"
     critique_momentum_preference = "critique_momentum_preference"
-    attribute_slider_preference = "attribute_slider_preference"
+    best_vs_incumbent_preference = "best_vs_incumbent_preference"
 
 
 class SteeringMode(str, Enum):

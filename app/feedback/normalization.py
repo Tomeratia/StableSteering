@@ -27,8 +27,8 @@ def normalize_feedback(round_id: str, request: FeedbackRequest) -> FeedbackEvent
         normalized = {"winner_candidate_id": winner_candidate_id, "ratings": ratings}
     elif request.feedback_type == FeedbackType.critique_rating:
         normalized = _normalize_critique_rating(payload)
-    elif request.feedback_type == FeedbackType.attribute_slider:
-        normalized = _normalize_attribute_slider(payload)
+    elif request.feedback_type == FeedbackType.best_vs_incumbent:
+        normalized = _normalize_best_vs_incumbent(payload)
     elif request.feedback_type == FeedbackType.pairwise:
         winner_candidate_id = payload.get("winner_candidate_id")
         loser_candidate_id = payload.get("loser_candidate_id")
@@ -90,32 +90,31 @@ def normalize_feedback(round_id: str, request: FeedbackRequest) -> FeedbackEvent
     )
 
 
-def _normalize_attribute_slider(payload: dict) -> dict:
-    """Normalize attribute slider feedback.
+def _normalize_best_vs_incumbent(payload: dict) -> dict:
+    """Normalize best-vs-incumbent feedback.
 
-    The user moves per-attribute sliders (e.g. brightness, style, detail) on a
-    scale of -1.0 to 1.0. The slider values are stored as a direction vector
-    that updaters can use to move z directly toward the stated preference.
+    The user sees exactly two candidates: the best new candidate from this round
+    and the incumbent (previous winner). They choose one.
 
     payload shape:
         {
-            "sliders": {"brightness": 0.6, "style": -0.3, "detail": 1.0},
-            "winner_candidate_id": "<id>"   # optional explicit winner
+            "winner_candidate_id": "<id>",          # the chosen candidate
+            "incumbent_candidate_id": "<id>",        # the incumbent shown
+            "challenger_candidate_id": "<id>",       # the best new candidate shown
+            "kept_incumbent": true | false           # true if user kept the old winner
         }
     """
-    sliders = payload.get("sliders", {})
-    if not isinstance(sliders, dict) or not sliders:
-        raise ValueError("attribute_slider feedback requires a non-empty sliders mapping")
-    for attr, val in sliders.items():
-        if not isinstance(val, (int, float)):
-            raise ValueError(f"attribute_slider: slider value for '{attr}' must be numeric")
-        if not (-1.0 <= float(val) <= 1.0):
-            raise ValueError(f"attribute_slider: slider value for '{attr}' must be between -1 and 1")
-
-    winner_candidate_id = payload.get("winner_candidate_id", "")
+    winner_id = payload.get("winner_candidate_id")
+    if not winner_id:
+        raise ValueError("best_vs_incumbent feedback requires winner_candidate_id")
+    incumbent_id = payload.get("incumbent_candidate_id", "")
+    challenger_id = payload.get("challenger_candidate_id", "")
+    kept_incumbent = bool(payload.get("kept_incumbent", winner_id == incumbent_id))
     return {
-        "winner_candidate_id": winner_candidate_id,
-        "sliders": {k: float(v) for k, v in sliders.items()},
+        "winner_candidate_id": winner_id,
+        "incumbent_candidate_id": incumbent_id,
+        "challenger_candidate_id": challenger_id,
+        "kept_incumbent": kept_incumbent,
     }
 
 
