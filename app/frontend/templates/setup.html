@@ -46,6 +46,70 @@
             <span class="field-label">Description <span class="help-tip" tabindex="0" role="note" aria-label="Description help" data-tooltip="Optional notes about the goal, comparison, or research intent for this session.">?</span></span>
             <input name="description" value="Initial real generation workflow">
           </label>
+          <div class="quick-config-panel">
+            <p class="field-label">Quick configuration <span class="help-tip" tabindex="0" role="note" aria-label="Quick config help" data-tooltip="These dropdowns update the YAML below automatically. You can also edit the YAML directly — the dropdowns will sync.">?</span></p>
+            <div class="quick-config-grid">
+              <label class="quick-config-item">
+                <span>Feedback mode</span>
+                <select id="qc-feedback-mode">
+                  <option value="scalar_rating">scalar_rating — star ratings</option>
+                  <option value="pairwise">pairwise — winner vs loser</option>
+                  <option value="top_k">top_k — rank candidates</option>
+                  <option value="winner_only">winner_only — pick one</option>
+                  <option value="approve_reject">approve_reject — approve / reject</option>
+                  <option value="critique_rating">critique_rating — stars + tags</option>
+                  <option value="attribute_slider">attribute_slider — move sliders</option>
+                </select>
+              </label>
+              <label class="quick-config-item">
+                <span>Updater</span>
+                <select id="qc-updater">
+                  <option value="winner_average">winner_average</option>
+                  <option value="winner_copy">winner_copy</option>
+                  <option value="linear_preference">linear_preference</option>
+                  <option value="score_weighted_preference">score_weighted_preference</option>
+                  <option value="contrastive_preference">contrastive_preference</option>
+                  <option value="softmax_preference">softmax_preference</option>
+                  <option value="borda_preference">borda_preference</option>
+                  <option value="bradley_terry_preference">bradley_terry_preference</option>
+                  <option value="challenger_mixture_preference">challenger_mixture_preference</option>
+                  <option value="plackett_luce_preference">plackett_luce_preference</option>
+                  <option value="advantage_softmax_preference">advantage_softmax_preference</option>
+                  <option value="critique_weighted_preference">critique_weighted_preference</option>
+                  <option value="critique_momentum_preference">critique_momentum_preference</option>
+                  <option value="attribute_slider_preference">attribute_slider_preference</option>
+                </select>
+              </label>
+              <label class="quick-config-item">
+                <span>Sampler</span>
+                <select id="qc-sampler">
+                  <option value="random_local">random_local</option>
+                  <option value="line_search">line_search</option>
+                  <option value="spherical_cover">spherical_cover</option>
+                  <option value="exploit_orthogonal">exploit_orthogonal</option>
+                  <option value="uncertainty_guided">uncertainty_guided</option>
+                  <option value="axis_sweep">axis_sweep</option>
+                  <option value="incumbent_mix">incumbent_mix</option>
+                  <option value="diversity_shell">diversity_shell</option>
+                  <option value="plateau_escape">plateau_escape</option>
+                  <option value="annealed_shell">annealed_shell</option>
+                  <option value="two_scale_cover">two_scale_cover</option>
+                  <option value="quality_diversity_mix">quality_diversity_mix</option>
+                  <option value="restart_bridge_mix">restart_bridge_mix</option>
+                </select>
+              </label>
+              <label class="quick-config-item">
+                <span>Steering mode</span>
+                <select id="qc-steering-mode">
+                  <option value="low_dimensional">low_dimensional</option>
+                  <option value="content_masked">content_masked</option>
+                  <option value="token_factorized">token_factorized</option>
+                  <option value="token_vector_field">token_vector_field</option>
+                </select>
+              </label>
+            </div>
+            <p class="hint quick-config-hint">Changing a dropdown rewrites the matching field in the YAML below. You can still edit the YAML directly.</p>
+          </div>
           <label>
             <span class="field-label">Session configuration (YAML) <span class="help-tip" tabindex="0" role="note" aria-label="YAML configuration help" data-tooltip="This YAML controls sampler, updater, feedback mode, seeds, candidate count, and generation settings for this one session.">?</span> <a href="https://apartsinprojects.github.io/StableSteering/docs/configuration_manual.html" target="_blank" rel="noopener noreferrer">Open configuration manual</a></span>
             <textarea name="config_yaml" id="config-yaml-editor" class="yaml-editor" spellcheck="false">{{ config_yaml }}</textarea>

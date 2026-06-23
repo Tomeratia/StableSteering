@@ -255,6 +255,24 @@ function buildFeedbackPayload(feedbackMode) {
     };
   }
 
+  if (feedbackMode === "attribute_slider") {
+    const sliders = collectAttributeSliders();
+    if (!Object.keys(sliders).length) {
+      throw new Error("Move at least one slider before submitting.");
+    }
+    // Pick the candidate whose sliders have the highest total positive movement as winner
+    const scores = {};
+    document.querySelectorAll(".attr-slider").forEach((input) => {
+      const cid = input.dataset.candidateId;
+      scores[cid] = (scores[cid] || 0) + parseFloat(input.value);
+    });
+    const winnerId = Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
+    return {
+      feedback_type: "attribute_slider",
+      payload: { sliders, winner_candidate_id: winnerId },
+    };
+  }
+
   if (feedbackMode === "critique_rating") {
     const ratingEntries = collectRatings();
     if (!ratingEntries.length) {
@@ -283,6 +301,18 @@ function buildFeedbackPayload(feedbackMode) {
   };
 }
 
+function collectAttributeSliders() {
+  const sliders = {};
+  document.querySelectorAll(".attr-slider").forEach((input) => {
+    const val = parseFloat(input.value) / 100.0;
+    if (val !== 0) {
+      const attr = input.dataset.attribute;
+      if (attr) sliders[attr] = val;
+    }
+  });
+  return sliders;
+}
+
 function collectCritiqueTags() {
   const tags = {};
   Array.from(document.querySelectorAll(".critique-tag-pill[aria-pressed='true']")).forEach((pill) => {
@@ -297,6 +327,49 @@ function collectCritiqueTags() {
     tags[candidateId].push(tag);
   });
   return tags;
+}
+
+// Quick-config panel: bidirectional sync between dropdowns and YAML editor.
+const QUICK_CONFIG_FIELDS = {
+  "qc-feedback-mode": "feedback_mode",
+  "qc-updater": "updater",
+  "qc-sampler": "sampler",
+  "qc-steering-mode": "steering_mode",
+};
+
+function yamlSetField(yaml, key, value) {
+  const re = new RegExp(`^(${key}:\\s*)(.+)$`, "m");
+  return re.test(yaml) ? yaml.replace(re, `$1${value}`) : yaml;
+}
+
+function yamlGetField(yaml, key) {
+  const m = yaml.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
+  return m ? m[1].trim() : null;
+}
+
+function syncDropdownsFromYaml(yaml) {
+  for (const [selectId, yamlKey] of Object.entries(QUICK_CONFIG_FIELDS)) {
+    const val = yamlGetField(yaml, yamlKey);
+    const select = document.getElementById(selectId);
+    if (select && val) {
+      const match = Array.from(select.options).find((o) => o.value === val);
+      if (match) select.value = val;
+    }
+  }
+}
+
+const qcEditor = document.getElementById("config-yaml-editor");
+if (qcEditor) {
+  syncDropdownsFromYaml(qcEditor.value);
+  qcEditor.addEventListener("input", () => syncDropdownsFromYaml(qcEditor.value));
+
+  for (const [selectId, yamlKey] of Object.entries(QUICK_CONFIG_FIELDS)) {
+    const select = document.getElementById(selectId);
+    if (!select) continue;
+    select.addEventListener("change", () => {
+      qcEditor.value = yamlSetField(qcEditor.value, yamlKey, select.value);
+    });
+  }
 }
 
 const setupForm = document.getElementById("setup-form");
@@ -380,6 +453,13 @@ Array.from(document.querySelectorAll(".star-button")).forEach((button) => {
     const value = Number(button.dataset.ratingValue || 0);
     applyStarRating(candidateId, value);
     traceFrontend("feedback.rating.selected", { candidate_id: candidateId, rating: value });
+  });
+});
+
+Array.from(document.querySelectorAll(".attr-slider")).forEach((slider) => {
+  const valueDisplay = slider.closest(".slider-row")?.querySelector(".slider-value");
+  slider.addEventListener("input", () => {
+    if (valueDisplay) valueDisplay.textContent = slider.value;
   });
 });
 

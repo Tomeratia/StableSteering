@@ -138,6 +138,21 @@
                             <label>Rank
                               <input type="number" min="1" max="{{ round.candidates|length }}" class="rank-input" data-candidate-id="{{ candidate.id }}" inputmode="numeric">
                             </label>
+                          {% elif session.config.feedback_mode.value == "attribute_slider" %}
+                            <div class="attribute-sliders" data-candidate-id="{{ candidate.id }}">
+                              {% for attr in ["brightness", "style", "detail", "composition", "mood"] %}
+                              <div class="slider-row">
+                                <label class="slider-label">{{ attr }}</label>
+                                <span class="slider-min">−</span>
+                                <input type="range" min="-100" max="100" value="0"
+                                  class="attr-slider"
+                                  data-candidate-id="{{ candidate.id }}"
+                                  data-attribute="{{ attr }}">
+                                <span class="slider-max">+</span>
+                                <span class="slider-value">0</span>
+                              </div>
+                              {% endfor %}
+                            </div>
                           {% elif session.config.feedback_mode.value == "critique_rating" %}
                             <div class="rating-widget" data-candidate-id="{{ candidate.id }}">
                               <span class="rating-label">Rating</span>
@@ -185,6 +200,8 @@
                       Mark approved candidates, then choose the preferred winner from the approved set.
                     {% elif session.config.feedback_mode.value == "top_k" %}
                       Assign unique ranks starting at 1. Lower numbers mean better preference.
+                    {% elif session.config.feedback_mode.value == "attribute_slider" %}
+                      Move the sliders to steer the next round. Left = less, right = more. Zero means no change on that dimension.
                     {% elif session.config.feedback_mode.value == "critique_rating" %}
                       Rate each candidate with stars, then optionally tag what you liked or disliked. Pair it with the <code>critique_weighted_preference</code> updater to let the tags steer the next round.
                     {% endif %}

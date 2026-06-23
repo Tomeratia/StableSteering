@@ -45,6 +45,8 @@ from app.updaters.advantage_softmax_pref import AdvantageSoftmaxPreferenceUpdate
 from app.storage.repository import JsonRepository
 from app.updaters.contrastive_pref import ContrastivePreferenceUpdater
 from app.updaters.critique_weighted_pref import CritiqueWeightedPreferenceUpdater
+from app.updaters.critique_momentum_pref import CritiqueMomentumPreferenceUpdater
+from app.updaters.attribute_slider_pref import AttributeSliderUpdater
 from app.updaters.borda_pref import BordaPreferenceUpdater
 from app.updaters.bradley_terry_pref import BradleyTerryPreferenceUpdater
 from app.updaters.challenger_mixture import ChallengerMixturePreferenceUpdater
@@ -97,6 +99,8 @@ class Orchestrator:
             "plackett_luce_preference": PlackettLucePreferenceUpdater(),
             "advantage_softmax_preference": AdvantageSoftmaxPreferenceUpdater(),
             "critique_weighted_preference": CritiqueWeightedPreferenceUpdater(),
+            "critique_momentum_preference": CritiqueMomentumPreferenceUpdater(),
+            "attribute_slider_preference": AttributeSliderUpdater(),
         }
 
     @staticmethod
@@ -287,7 +291,11 @@ class Orchestrator:
         self._validate_feedback_against_round(round_obj, feedback)
         updater = self.updaters[session.config.updater]
         self._report_progress(progress_callback, 52, "Updating the steering model from your feedback")
-        next_z, update_summary = updater.update(session, round_obj.candidates, feedback)
+        if isinstance(updater, CritiqueMomentumPreferenceUpdater):
+            past_rounds = self.repository.list_rounds_for_session(session.id)
+            next_z, update_summary = updater.update(session, round_obj.candidates, feedback, past_rounds=past_rounds)
+        else:
+            next_z, update_summary = updater.update(session, round_obj.candidates, feedback)
         round_obj.feedback_events.append(feedback)
         round_obj.update_summary = update_summary
         session.current_z = next_z

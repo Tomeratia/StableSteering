@@ -27,6 +27,8 @@ def normalize_feedback(round_id: str, request: FeedbackRequest) -> FeedbackEvent
         normalized = {"winner_candidate_id": winner_candidate_id, "ratings": ratings}
     elif request.feedback_type == FeedbackType.critique_rating:
         normalized = _normalize_critique_rating(payload)
+    elif request.feedback_type == FeedbackType.attribute_slider:
+        normalized = _normalize_attribute_slider(payload)
     elif request.feedback_type == FeedbackType.pairwise:
         winner_candidate_id = payload.get("winner_candidate_id")
         loser_candidate_id = payload.get("loser_candidate_id")
@@ -86,6 +88,35 @@ def normalize_feedback(round_id: str, request: FeedbackRequest) -> FeedbackEvent
         critique_text=request.critique_text,
         critique_tags=normalized.get("critique_tags", {}),
     )
+
+
+def _normalize_attribute_slider(payload: dict) -> dict:
+    """Normalize attribute slider feedback.
+
+    The user moves per-attribute sliders (e.g. brightness, style, detail) on a
+    scale of -1.0 to 1.0. The slider values are stored as a direction vector
+    that updaters can use to move z directly toward the stated preference.
+
+    payload shape:
+        {
+            "sliders": {"brightness": 0.6, "style": -0.3, "detail": 1.0},
+            "winner_candidate_id": "<id>"   # optional explicit winner
+        }
+    """
+    sliders = payload.get("sliders", {})
+    if not isinstance(sliders, dict) or not sliders:
+        raise ValueError("attribute_slider feedback requires a non-empty sliders mapping")
+    for attr, val in sliders.items():
+        if not isinstance(val, (int, float)):
+            raise ValueError(f"attribute_slider: slider value for '{attr}' must be numeric")
+        if not (-1.0 <= float(val) <= 1.0):
+            raise ValueError(f"attribute_slider: slider value for '{attr}' must be between -1 and 1")
+
+    winner_candidate_id = payload.get("winner_candidate_id", "")
+    return {
+        "winner_candidate_id": winner_candidate_id,
+        "sliders": {k: float(v) for k, v in sliders.items()},
+    }
 
 
 def _normalize_critique_rating(payload: dict) -> dict:
