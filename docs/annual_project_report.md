@@ -294,7 +294,7 @@ flowchart LR
 
 All five existing feedback modes capture **which** candidate the user prefers. None captures **why**. This feature adds that missing dimension.
 
-### The Algorithm
+### How `critique_weighted_preference` Works
 
 <p align="center"><img src="assets/diagram_algorithm_flowchart.png" width="600"/></p>
 
