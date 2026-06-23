@@ -198,6 +198,51 @@ All additions are **strictly additive** — no existing algorithm was modified. 
 
 ---
 
+## System Architecture
+
+```mermaid
+flowchart TD
+    U["👤 User
+(browser)"]
+    FE["Frontend
+session.html / app.js"]
+    API["FastAPI
+app/main.py"]
+    ORC["Orchestrator
+orchestrator.py"]
+    SAMP["Sampler
+13 strategies"]
+    UPD["Updater
+14 algorithms"]
+    GEN["Generation Engine
+Stable Diffusion"]
+    REPO["JSON Repository
+data/"]
+    CONV["Convergence
+convergence.py"]
+
+    U -->|"prompt + feedback"| FE
+    FE -->|"HTTP POST"| API
+    API --> ORC
+    ORC --> SAMP
+    SAMP -->|"propose z vectors"| GEN
+    GEN -->|"candidate images"| ORC
+    ORC --> UPD
+    UPD -->|"updated z"| ORC
+    ORC --> CONV
+    ORC --> REPO
+    REPO -->|"rounds, candidates"| API
+    API -->|"HTML / JSON"| FE
+    FE -->|"images + widgets"| U
+
+    style GEN fill:#e8f0fe,stroke:#4285f4
+    style UPD fill:#e8f5e9,stroke:#388e3c
+    style SAMP fill:#e8f5e9,stroke:#388e3c
+    style CONV fill:#fff8dc,stroke:#d4a800
+```
+
+---
+
 ## Feature 1 — Convergence Detection
 
 ### Motivation
