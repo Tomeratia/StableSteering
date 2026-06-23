@@ -294,13 +294,11 @@ flowchart LR
 
 All five existing feedback modes capture **which** candidate the user prefers. None captures **why**. This feature adds that missing dimension.
 
-### Design — Strictly Additive
-
-<p align="center"><img src="assets/diagram_additive_design.png" width="550"/></p>
-
 ### The Algorithm
 
 <p align="center"><img src="assets/diagram_algorithm_flowchart.png" width="600"/></p>
+
+**End-to-end flow** — from user interaction in the browser to the convergence report:
 
 <p align="center"><img src="assets/diagram_critique_flow.png" width="800"/></p>
 
