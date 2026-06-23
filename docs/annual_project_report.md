@@ -20,8 +20,6 @@ This report summarizes two independent research projects completed during the th
 
 ---
 
----
-
 # Semester A — Autonomous Car Edge Case Detection
 ### Synthetic Animal Insertion for Robustness Testing of Autonomous Driving Perception
 
@@ -181,7 +179,7 @@ M3 outperforms M2 across all test sets. The biggest gains are on **Test-Mixed (+
 
 StableSteering is a FastAPI research platform for **iterative preference-guided image generation**. The core loop: a user submits a text prompt → candidates are generated via Stable Diffusion → the user provides feedback → a steering vector `z` is updated → the next round of candidates is generated from the updated state.
 
-This semester's contributions address two gaps explicitly listed in the supervisor's research roadmap:
+This semester's contributions extend the platform with seven new capabilities:
 
 | Feature | What it adds |
 |---|---|
@@ -193,21 +191,10 @@ This semester's contributions address two gaps explicitly listed in the supervis
 | Analysis Tools | CSV export + Jupyter notebook template |
 | Quick-Config Panel | Dropdown UI synced bidirectionally with YAML editor |
 
+The core algorithmic contributions are Features 1–4 (convergence detection, critique feedback mode, momentum updater, best-vs-incumbent). Features 5–7 are supporting infrastructure: an empirical study validating the new modes, analysis export tools, and a UI convenience layer.
+
 All additions are **strictly additive** — no existing algorithm was modified. The platform's 102 original tests continue to pass, and 22 new tests were added, bringing the total to **124 passing tests**.
 
-### At a Glance
-
-```
-Before                          After
-──────────────────────────────────────────────────────────
-5 feedback modes                7 feedback modes  (+critique_rating, +best_vs_incumbent)
-11 updaters                     14 updaters       (+critique_weighted, +critique_momentum, +best_vs_incumbent_preference)
-No convergence signal           Full convergence detection + UI
-No strategy comparison study    18-session anchor study + 27-session diversity study + 54-session mode study
-No analysis exports             CSV export + Jupyter analysis notebook
-Manual YAML-only setup          Quick-config panel (dropdowns synced with YAML)
-102 tests                       124 tests
-```
 
 ---
 
@@ -221,7 +208,7 @@ Manual YAML-only setup          Quick-config panel (dropdowns synced with YAML)
 
 ### Motivation
 
-The platform had no mechanism to tell a user or researcher when a steering session had "settled." Every session ran for a fixed number of rounds with no signal that the steering vector `z` had stopped meaningfully moving. The supervisor's roadmap (§5, §8.4) listed convergence tracking as a prerequisite for studying session efficiency and comparing strategies.
+The platform had no mechanism to tell a user or researcher when a steering session had "settled." Every session ran for a fixed number of rounds with no signal that the steering vector `z` had stopped meaningfully moving. This feature adds that missing signal, making it possible to study session efficiency and compare strategies.
 
 ### How It Works
 
@@ -266,10 +253,6 @@ flowchart LR
 
 ### Motivation
 
-The supervisor's roadmap (§7.4) explicitly states:
-
-> *"test **critique-aware models** that combine discrete selections with structured or free-text reasons"*
-
 All five existing feedback modes capture **which** candidate the user prefers. None captures **why**. This feature adds that missing dimension.
 
 ### Design — Strictly Additive
@@ -284,7 +267,7 @@ For each candidate $i$, compute a tag weight:
 
 $$w_i = |\text{positive tags}_i| - |\text{negative tags}_i|$$
 
-Compute attraction and repulsion centroids:
+Each candidate's `z` is a point in the model's latent embedding space. Compute attraction and repulsion centroids in that space:
 
 $$\mathbf{c}^{+} = \frac{\sum_{i:\, w_i > 0} w_i \cdot z_i}{\sum_{i:\, w_i > 0} w_i}, \qquad \mathbf{c}^{-} = \frac{\sum_{i:\, w_i < 0} |w_i| \cdot z_i}{\sum_{i:\, w_i < 0} |w_i|}$$
 
@@ -322,7 +305,7 @@ critique_weighted ████████ 6.11     critique_weighted ███�
 
 ### Motivation
 
-The roadmap (§9.5) asks for stronger updaters that are robust to noisy feedback and sensitive to repeated signals. The existing `critique_weighted_preference` treats every tag equally regardless of whether the user has selected it once or five times in a row. This wastes valuable consistency information.
+The existing `critique_weighted_preference` treats every tag equally regardless of whether the user has selected it once or five times in a row. This wastes valuable consistency information.
 
 ### How It Works
 
@@ -396,14 +379,7 @@ flowchart TD
     style E fill:#e8f5e9,stroke:#388e3c
 ```
 
-### Why This Is Different
-
-| Mode | What the user compares |
-|---|---|
-| `winner_only`, `pairwise`, `top_k` | Candidates from the current round only |
-| `best_vs_incumbent` | Best new candidate **vs. the established winner** |
-
-The UI highlights the incumbent with a "Current winner" badge and the challenger with "New challenger", making the comparison explicit. Choosing the incumbent is a valid decision that preserves the current steering state.
+The UI highlights the incumbent with a "Current winner" badge and the challenger with "New challenger". Choosing the incumbent is a valid decision that preserves the current steering state.
 
 ### New Updater
 
@@ -418,7 +394,7 @@ The UI highlights the incumbent with a "Current winner" badge and the challenger
 
 ### Motivation
 
-The supervisor's roadmap (§7.1) asks for an empirical comparison of all feedback modes. No such study existed — it was unknown whether richer feedback (ratings, tags) actually outperforms simpler modes (winner-only, pairwise) in steering accuracy.
+No empirical comparison of all feedback modes existed — it was unknown whether richer feedback (ratings, tags) actually outperforms simpler modes (winner-only, pairwise) in steering accuracy.
 
 ### Setup
 
@@ -467,6 +443,10 @@ This means the dropdowns are a convenience layer, not a replacement — power us
 
 ## Feature 7 — Analysis Tools
 
+### Motivation
+
+Session data was stored as JSON, making cross-session comparison awkward. These tools make it easy to load session data into a notebook or spreadsheet without preprocessing.
+
 ### CSV Export
 
 ```bash
@@ -488,38 +468,6 @@ Three tidy CSV tables with shared join keys — load directly into a notebook or
 
 ---
 
-## Files Added — Semester B
-
-### New files
-
-| File | Purpose |
-|---|---|
-| `app/engine/convergence.py` | Convergence detection logic |
-| `app/updaters/critique_weighted_pref.py` | Critique-weighted updater |
-| `app/updaters/critique_momentum_pref.py` | Momentum updater (tag history) |
-| `app/frontend/templates/convergence.html` | Convergence report HTML page |
-| `tests/test_convergence.py` | 13 convergence tests |
-| `tests/test_critique_feedback.py` | 8 critique feedback tests |
-| `tests/test_critique_momentum.py` | 7 momentum updater tests |
-| `scripts/run_critique_comparison.py` | 18-session anchor comparison study |
-| `scripts/run_diversity_comparison.py` | 27-session diversity study |
-| `scripts/export_session_csv.py` | CSV export tool |
-| `notebooks/analysis_template.ipynb` | Jupyter analysis template |
-| `output/critique_comparison/findings.md` | Anchor study results |
-| `output/diversity_comparison/findings.md` | Diversity study results |
-
-### Modified files (additive only — no existing logic changed)
-
-| File | Change |
-|---|---|
-| `app/core/schema.py` | +3 enum values, +1 field |
-| `app/feedback/normalization.py` | +1 dispatch branch |
-| `app/engine/orchestrator.py` | +2 imports, +2 dict entries |
-| `app/main.py` | +2 endpoints, convergence banner |
-| `app/frontend/templates/session.html` | +critique widget, +convergence banner |
-| `app/frontend/static/app.js` | +critique payload handler |
-| `app/frontend/static/styles.css` | +critique and convergence styles |
-
 ---
 
 ## Key Findings — Semester B
@@ -529,8 +477,6 @@ Three tidy CSV tables with shared join keys — load directly into a notebook or
 - **Speed vs. accuracy tradeoff**: critique mode takes more rounds (6.11 vs 3.78) but reaches 38% closer to the target.
 - **Momentum amplifies consistent signals**: tag history accumulation produces 31% higher candidate diversity than plain scalar feedback.
 - **All 11 existing updaters remain backward-compatible** with the new feedback mode.
-
----
 
 ---
 
