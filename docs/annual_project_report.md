@@ -298,9 +298,40 @@ All five existing feedback modes capture **which** candidate the user prefers. N
 
 <p align="center"><img src="assets/diagram_algorithm_flowchart.png" width="600"/></p>
 
-**End-to-end flow** — from user interaction in the browser to the convergence report:
+**End-to-end flow for `critique_rating`** — how a single feedback submission travels from the browser to the convergence report:
 
-<p align="center"><img src="assets/diagram_critique_flow.png" width="800"/></p>
+```mermaid
+flowchart TD
+    A["👤 User
+rates candidates ⭐ + clicks tag pills"] --> B["Frontend
+session.html / app.js
+collects ratings + tags"]
+    B -->|"HTTP POST /feedback"| C["normalize_feedback()
+→ _normalize_critique_rating()
+output: winner_id + ratings + critique_tags"]
+    C --> D["critique_weighted_preference updater
+weighted centroid math
+z_new = clamp(z_old + α · direction)"]
+    D --> E["orchestrator.py
+saves round + update_summary"]
+    E --> F["convergence.py
+evaluate_convergence()
+step_magnitudes, quiet_streak"]
+    F --> G{Converged?}
+    G -->|"✓ yes"| H["ConvergenceReport
+converged = true"]
+    G -->|"✗ not yet"| I["ConvergenceReport
+converged = false"]
+    H & I --> J["Session page banner
+(live status)"]
+    H & I --> K["GET /convergence
+HTML report page"]
+    H & I --> L["GET /convergence/json
+JSON for scripts"]
+
+    style D fill:#e8f5e9,stroke:#388e3c
+    style F fill:#fff8dc,stroke:#d4a800
+```
 
 For each candidate $i$, compute a tag weight:
 
