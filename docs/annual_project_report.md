@@ -198,12 +198,6 @@ All additions are **strictly additive** — no existing algorithm was modified. 
 
 ---
 
-## System Architecture
-
-<p align="center"><img src="assets/diagram_system_architecture.png" width="800"/></p>
-
----
-
 ## Feature 1 — Convergence Detection
 
 ### Motivation
@@ -261,7 +255,7 @@ All five existing feedback modes capture **which** candidate the user prefers. N
 
 ### The Algorithm
 
-<p align="center"><img src="assets/diagram_algorithm_flowchart.png" width="800"/></p>
+<p align="center"><img src="assets/diagram_critique_flow.png" width="800"/></p>
 
 For each candidate $i$, compute a tag weight:
 
