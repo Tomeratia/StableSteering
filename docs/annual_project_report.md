@@ -300,6 +300,8 @@ All five existing feedback modes capture **which** candidate the user prefers. N
 
 ### The Algorithm
 
+<p align="center"><img src="assets/diagram_algorithm_flowchart.png" width="600"/></p>
+
 <p align="center"><img src="assets/diagram_critique_flow.png" width="800"/></p>
 
 For each candidate $i$, compute a tag weight:
